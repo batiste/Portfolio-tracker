@@ -5,6 +5,12 @@ import ystockquote
 import wx
 import wx.grid
 
+def find(f, seq):
+  """Return first item in sequence where f(item) == True."""
+  for item in seq:
+        if f(item):
+            return item
+
 class wxHelloFrame(wx.Frame):
     """This is the frame for our application, it is derived from
     the wx.Frame element."""
@@ -42,10 +48,22 @@ class wxHelloFrame(wx.Frame):
         self.h_sizer.AddSpacer((5,0))
         self.h_sizer.Add(self.button)
 
+        self.column_definition = [
+            {'name':'name', 'label':'Name'},
+            {'name':'price', 'label':'Price'},
+            {'name':'price_earnings_ratio', 'label':'P/E'},
+            {'name':'earnings_per_share', 'label':'EPS'},
+            {'name':'50day_moving_avg', 'label': '50 days mvt. avg'},
+            {'name':'200day_moving_avg', 'label': '200 days mvt. avg'},
+            {'name':'avg_daily_volume', 'label': 'avg. daily volume'},
+        ]
+
         self.grid = wx.grid.Grid(self);
-        self.grid.CreateGrid(10, 16)
+        self.grid.CreateGrid(10, len(self.column_definition) + 2)
         self.grid.IsEditable = False
         self.grid.DisableCellEditControl()
+
+        self.update_grid_header()
 
         self.v_sizer.Add(self.h_sizer)
         self.v_sizer.Add(self.grid, 1, wx.EXPAND | wx.ALIGN_TOP)
@@ -53,6 +71,16 @@ class wxHelloFrame(wx.Frame):
         self.SetSizer(self.v_sizer)
         #self.SetAutoLayout(1)
         self.v_sizer.Fit(self)
+
+    def update_grid_header(self):
+        column_number = 0
+        for col in self.column_definition:
+
+            self.grid.SetColSize(column_number, len(col['label'])*8 + 14)
+            self.grid.SetColLabelValue(column_number, col['label'])
+
+            column_number = column_number + 1
+
 
     def on_key_pressed(self, evt):
         if evt.GetKeyCode() == wx.WXK_RETURN:
@@ -76,19 +104,18 @@ class wxHelloFrame(wx.Frame):
             self.edit.SetFocus()
             return
 
-        column = 1
-        self.grid.SetColLabelValue(0, "Name")
         self.grid.SetCellValue(len(self.quotes), 0, quote_name)
-        for key, value in answer.items():
 
-            if not self.quotes:
-                self.grid.SetColSize(column, len(str(key))*9)
-                self.grid.SetColLabelValue(column, str(key))
+        column = 0
 
-            self.grid.SetCellValue(len(self.quotes), column, str(value))
+        for col in self.column_definition:
+
+            if col['name'] in answer:
+                self.grid.SetCellValue(len(self.quotes), column, str(answer[col['name']]))
+
             column = column + 1
 
-        self.quotes.append(quote_name)
+        self.quotes.append({'name':quote_name})
 
 class wxHelloApp(wx.App):
     """The wx.App for the wxHello application"""
